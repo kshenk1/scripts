@@ -1,0 +1,14 @@
+
+## MISC Aliases ##
+alias ll='ls -al'
+alias showpath='echo $PATH | tr ":" "\n"'
+alias vboxstat='ps -ef | grep -i "virtualbox" | egrep -v "grep"'
+alias vbox_restart='sudo launchctl load /Library/LaunchDaemons/org.virtualbox.startup.plist'
+
+## git aliases ##
+alias gits='git status'
+alias gpom='git pull origin master'
+alias GPOM='git push origin master'
+alias gita='git add'
+alias gitc='git commit -m'
+
