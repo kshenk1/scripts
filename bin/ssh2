@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import os, sys, subprocess, signal, re
+from time import sleep
+from colorama import init, Fore, Style
+
+init()
+
+def signal_handler(signal, frame):
+    subprocess.Popen(['bash', '-c', 'source {0}'.format(TAB_HELPER) + '; tab_reset'])
+    print('\nUser abort...')
+    sys.exit(0)
+
+def error(msg, exit=True):
+    print(Fore.RED + 'ERROR: ' + Fore.RESET + msg, file=sys.stderr)
+    if exit:
+        sys.exit(1)
+
+def warning(msg):
+    print(Fore.YELLOW + 'WARNING: ' + Fore.RESET + msg, file=sys.stderr)
+    sleep(.5)
+
+def do_ssh(host):
+    #print(Fore.CYAN + " --> Taking you to: " + Style.BRIGHT + Fore.WHITE + "{0}".format(host) + Fore.RESET + Style.RESET_ALL)
+    print("{0} --> Taking you to: {1}{2}{3}{4}".format(Fore.CYAN, Style.BRIGHT, Fore.WHITE, host, Style.RESET_ALL))
+
+    if (re.search(r'prod', SSH_FILE_NAME, re.I|re.M)):
+        subprocess.Popen(['bash', '-c', 'source {0}'.format(TAB_HELPER) + '; tab_red'])
+    if (re.search(r'staging', SSH_FILE_NAME, re.I|re.M)):
+        subprocess.Popen(['bash', '-c', 'source {0}'.format(TAB_HELPER) + '; tab_magenta_fuchsia'])
+    if (re.search(r'nedry', SSH_FILE_NAME, re.I|re.M)):
+        subprocess.Popen(['bash', '-c', 'source {0}'.format(TAB_HELPER) + '; tab_light_green'])
+    if (re.search(r'jenkins', SSH_FILE_NAME, re.I|re.M)):
+        subprocess.Popen(['bash', '-c', 'source {0}'.format(TAB_HELPER) + '; tab_azure'])
+
+    ssh     = subprocess.Popen(['ssh', '-o', 'ConnectTimeout=5', '{0}@{1}'.format(SSH_USER, host)])
+    ssh.wait()
+    subprocess.Popen(['bash', '-c', 'source {0}'.format(TAB_HELPER) + '; tab_reset'])
+    return ssh.returncode
+
+def main():
+    _ssh_return = 0
+    lines = [line.strip() for line in open(SSH_FILE)]
+
+    if len(lines) == 1:
+        sys.exit(do_ssh(lines[0]))
+
+    out_format = "{0:<7} {1:20} {2:30}"
+
+    while True:
+        print(Fore.YELLOW + ("-" * 50) + Fore.RESET)
+        print(Style.BRIGHT + out_format.format(" #", "Desc", "Host") + Style.RESET_ALL)
+        print(Fore.YELLOW + ("-" * 50) + Fore.RESET)
+
+        destinations = []
+
+        for (counter, line) in enumerate(lines):
+            line_format = out_format
+            _data   = line.split(':')
+            data    = {'host': _data[1], 'desc': _data[0]}
+
+            destinations.append(data)
+
+            if (counter % 2) == 0:
+                line_format = Fore.CYAN + out_format + Fore.RESET
+
+            print(line_format.format('({0})'.format(counter + 1), data['desc'], data['host']))
+
+        print(Fore.YELLOW + ("-" * 50) + Fore.RESET)
+        choice = raw_input("Which one? (#): ")
+
+        try:
+            choice = int(choice) - 1
+        except ValueError:
+            warning("Please only use numbers...")
+            continue
+
+        if choice < 0:
+            warning("Choice not available... try again.")
+            continue
+
+        try:
+            host_data = destinations[choice]
+            _ssh_return = do_ssh(host_data['host'])
+            break
+        except IndexError:
+            warning("Choice does not exist... try again.")
+            continue
+
+    sys.exit(_ssh_return)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+try:
+    SSH_FILE_NAME = sys.argv[1]
+except IndexError:
+    error('The SSH file is required')
+
+SSH_FILE_DIR = os.path.join(os.environ.get('HOME'), 'bin', 'data')
+
+if not os.path.isdir(SSH_FILE_DIR):
+    error('directory: ' + SSH_FILE_DIR + ' does not exist')
+
+SSH_FILE    = os.path.join(SSH_FILE_DIR, SSH_FILE_NAME)
+SSH_USER    = 'root'
+TAB_HELPER  = os.path.join(os.environ.get('HOME'), 'bin', 'tab_helper.sh')
+
+if not os.path.isfile(SSH_FILE):
+    error('file: ' + SSH_FILE + ' does not exist')
+
+if __name__ == "__main__":
+    main()

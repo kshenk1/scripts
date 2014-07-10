@@ -1,0 +1,8 @@
+_ssh2()
+{
+	local ssh_file_dir="$HOME/bin/data"
+	local ssh_files="$(basename $(find $ssh_file_dir -type f))"
+	local cur=${COMP_WORDS[COMP_CWORD]}
+	COMPREPLY=($(compgen -W "${ssh_files}" -- $cur))
+}
+complete -F _ssh2 ssh2
