@@ -14,46 +14,6 @@ import re
 
 init()
 
-DOMAIN  = 'bitbucket.org'
-DEVNULL = open(os.devnull)
-
-bitbucket_config    = os.path.join(os.environ.get('HOME'), '.bitbucket')
-config              = {}
-check_config        = ('username', 'password', 'local_base', 'team')
-
-if not os.path.exists(bitbucket_config):
-    print("File doesn't exist: {f}".format(f=bitbucket_config))
-    sys.exit(1)
-
-with open(bitbucket_config, 'r') as f:
-    config = yaml.load(f)
-
-_e = False
-for param in check_config:
-    if not param in config:
-        _e = True
-        print("{p} not found in {file}".format(p=param, file=bitbucket_config))
-if _e:
-    sys.exit(1)
-
-USER            = config['username']
-REPO_PARENT_DIR = config['local_base']
-TEAM            = config['team']
-BB              = Bitbucket(config['username'], config['password'])
-
-if not os.path.isdir(REPO_PARENT_DIR):
-    print('Error: {p} does not exist!'.format(REPO_PARENT_DIR))
-    sys.exit(1)
-
-proc = subprocess.Popen(['which', 'git'], stdout=subprocess.PIPE, stderr=DEVNULL)
-proc.wait()
-
-if proc.returncode != 0:
-    print('Error: Unable to locate the git executable!')
-    sys.exit(1)
-
-GIT = proc.stdout.readline().strip()
-
 def decode_str(s):
     ## for python3 so we don't have b'string' when printing stuff
     return s.decode('UTF-8')
@@ -283,7 +243,47 @@ def main():
     if args.reconcile:
         reconcile()
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+DOMAIN  = 'bitbucket.org'
+DEVNULL = open(os.devnull)
+
+bitbucket_config    = os.path.join(os.environ.get('HOME'), '.bitbucket')
+config              = {}
+check_config        = ('username', 'password', 'local_base', 'team')
+
+if not os.path.exists(bitbucket_config):
+    print(color_val("File doesn't exist: {f}".format(f=bitbucket_config), Fore.RED + Style.BRIGHT))
+    sys.exit(1)
+
+with open(bitbucket_config, 'r') as f:
+    config = yaml.load(f)
+
+_e = False
+for param in check_config:
+    if not param in config:
+        _e = True
+        print(color_val("{p} not found in {file}".format(p=param, file=bitbucket_config), Fore.RED + Style.BRIGHT))
+if _e:
+    sys.exit(1)
+
+USER            = config['username']
+REPO_PARENT_DIR = config['local_base']
+TEAM            = config['team']
+BB              = Bitbucket(config['username'], config['password'])
+
+if not os.path.isdir(REPO_PARENT_DIR):
+    print(color_val('Error: {p} does not exist!'.format(REPO_PARENT_DIR), Fore.RED + Style.BRIGHT))
+    sys.exit(1)
+
+proc = subprocess.Popen(['which', 'git'], stdout=subprocess.PIPE, stderr=DEVNULL)
+proc.wait()
+
+if proc.returncode != 0:
+    print(color_val('Error: Unable to locate the git executable!', Fore.RED + Style.BRIGHT))
+    sys.exit(1)
+
+GIT = proc.stdout.readline().strip()
 
 args = parse_args()
 
