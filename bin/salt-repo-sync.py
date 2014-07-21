@@ -14,10 +14,6 @@ import re
 
 init()
 
-def decode_str(s):
-    ## for python3 so we don't have b'string' when printing stuff
-    return s.decode('UTF-8')
-
 def color_val(val, color):
     return "%s%s%s" % (color, val, Style.RESET_ALL)
 
@@ -29,7 +25,7 @@ def git_version():
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=DEVNULL)
     proc.wait()
 
-    print(decode_str(proc.stdout.readline().strip()))
+    print(proc.stdout.readline().strip().decode('UTF-8'))
 
 def get_user_input(text):
     global input
@@ -86,7 +82,7 @@ def get_local_repo_branch(repo_dir):
         print(color_val(proc.stderr.readlines(), Fore.RED + Style.BRIGHT))
         return False
 
-    branch = decode_str(proc.stdout.readline().strip()).split('/').pop()
+    branch = proc.stdout.readline().strip().decode('UTF-8').split('/').pop()
     
     if not branch:
         return False
@@ -102,7 +98,7 @@ def get_remote_hash(repo_dir, branch, origin='origin'):
         return False
 
     res = proc.stdout.readline()
-    res = re.split(r'\t+', decode_str(res))
+    res = re.split(r'\t+', res.decode('UTF-8'))
     if res:
         return res[0]
     return False
