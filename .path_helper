@@ -1,0 +1,41 @@
+in_array () {
+    local needle="$1"; shift
+    local ar="$@"
+    [ -z "$needle" ] && return 1
+    [ "${#ar[@]}" -le 0 ] && return 1
+    for i in ${ar[@]}
+    do
+        [ "$needle" = "$i" ] && return 0
+    done
+    return 1
+}
+## these functions keep the path clean - so there's no dups.
+path_prepend () {
+    local add_path="$1"; shift
+    [ -z "$add_path" ] && return
+    local new_path=($add_path)
+    for p in $(echo "$PATH" | tr ':' ' ')
+    do
+        if ! in_array "$p" ${new_path[@]}; then
+            new_path[${#new_path[@]}]="$p"
+        fi
+    done
+    PATH=$(IFS=: ; echo "${new_path[*]}")
+}
+path_append () {
+    local add_path="$1"; shift
+    [ -z "$add_path" ] && return
+    new_path=()
+    ## clean while we're at it.
+    for p in $(echo "$PATH" | tr ':' ' ')
+    do
+        [ "$add_path" = "$p" ] && continue
+        if ! in_array "$p" ${new_path[@]}; then
+            new_path[${#new_path[@]}]="$p"
+        fi
+    done
+    if ! in_array "$add_path" ${new_path[@]}; then
+        new_path[${#new_path[@]}]="$add_path"
+    fi
+    PATH=$(IFS=: ; echo "${new_path[*]}")
+}
