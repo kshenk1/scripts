@@ -26,6 +26,7 @@ syspip () {
     pip "$@"
 }
 
+path_prepend "/usr/local/sbin"
 path_prepend "/usr/local/bin"
 
 misc_paths[${#misc_paths[@]}]="$HOME/bin"
