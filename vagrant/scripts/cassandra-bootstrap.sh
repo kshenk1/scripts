@@ -10,7 +10,7 @@ _hostname="$(hostname)"
 yum -y install glibc-2.17-55.el7_0.1.i686 libgcc-4.8.2-16.2.el7_0.i686
 
 [ -f "/opt/support/jre-7u67-linux-i586.rpm" ] && {
-    rpm -ivh /opt/support/jre-7u67-linux-i586.rpm || {
+    yum install -y /opt/support/jre-7u67-linux-i586.rpm || {
         echo "Java Installation failed" && exit 1
     }
 }
