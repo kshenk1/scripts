@@ -15,7 +15,7 @@ yum -y install glibc-2.17-55.el7_0.1.i686 libgcc-4.8.2-16.2.el7_0.i686
     }
 }
 
-yum -y install jna
+#yum -y install jna
 
 datastax_repo_file="/etc/yum.repos.d/datastax.repo"
 
